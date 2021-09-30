@@ -1,6 +1,15 @@
 import React, { useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  ActivityIndicator,
+  PermissionsAndroid,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { RNCamera } from 'react-native-camera';
+import CameraRoll from '@react-native-community/cameraroll';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -15,20 +24,21 @@ const Camera = (): JSX.Element => {
     setRecording(true);
 
     try {
-      const data = await cameraRef.current?.recordAsync({
+      const video = await cameraRef.current?.recordAsync({
         maxDuration: 5,
         mute: false,
         quality: '288p',
       });
 
-      console.log(data?.uri);
-
       setRecording(false);
       setProcessing(true);
 
-      setTimeout(() => {
-        setProcessing(false);
-      }, 1000);
+      if (video?.uri) {
+        const response = await saveRecording(video.uri);
+        console.log(response);
+      }
+
+      setProcessing(false);
     } catch (error) {
       console.log(error);
     }
@@ -67,6 +77,26 @@ const Camera = (): JSX.Element => {
       </View>
     );
   }
+
+  const hasAndroidPermission = async () => {
+    const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+
+    const hasPermission = await PermissionsAndroid.check(permission);
+    if (hasPermission) {
+      return true;
+    }
+
+    const status = await PermissionsAndroid.request(permission);
+    return status === 'granted';
+  };
+
+  const saveRecording = async (videoUri: string) => {
+    if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
+      return;
+    }
+
+    return await CameraRoll.save(videoUri, { type: 'video' });
+  };
 
   return (
     <View style={[styles.container]}>
