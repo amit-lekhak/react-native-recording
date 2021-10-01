@@ -22,6 +22,9 @@ const Camera = (): JSX.Element => {
   const [showGallery, setShowGallery] = useState(false);
   const [videos, setVideos] = useState<PhotoIdentifier[]>([]);
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
+  const [showControls, setShowControls] = useState(false);
+
+  const videoRef = useRef<Video | null>(null);
 
   let currentIndex = 0;
 
@@ -171,10 +174,14 @@ const Camera = (): JSX.Element => {
               return (
                 <View key={i}>
                   <Video
-                    controls={true}
-                    style={styles.video}
-                    fullscreen={true}
+                    ref={videoRef}
+                    poster='https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg'
+                    controls={showControls}
+                    onLoad={() => {
+                      setShowControls(true);
+                    }}
                     paused={true}
+                    style={styles.video}
                     source={{ uri: p.node.image.uri }}
                   />
                 </View>
@@ -211,9 +218,11 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   video: {
-    width: 300,
-    height: 300,
-    margin: 20,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
   },
   pagerView: {
     flex: 1,
