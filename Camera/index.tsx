@@ -9,7 +9,9 @@ import {
   View,
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
-import CameraRoll from '@react-native-community/cameraroll';
+import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
+import Video from 'react-native-video';
+import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -17,6 +19,11 @@ const Camera = (): JSX.Element => {
   const [processing, setProcessing] = useState(false);
   const [cameraType, setCameraType] = useState(RNCamera.Constants.Type.front);
   const [isCameraReady, setIsCameraReady] = useState(false);
+  const [showGallery, setShowGallery] = useState(false);
+  const [videos, setVideos] = useState<PhotoIdentifier[]>([]);
+  const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
+
+  let currentIndex = 0;
 
   const startRecording = async () => {
     if (!isCameraReady) return;
@@ -35,7 +42,7 @@ const Camera = (): JSX.Element => {
 
       if (video?.uri) {
         const response = await saveRecording(video.uri);
-        console.log(response);
+        response && setSelectedVideoUri(response);
       }
 
       setProcessing(false);
@@ -44,8 +51,8 @@ const Camera = (): JSX.Element => {
     }
   };
 
-  const stopRecording = async () => {
-    await cameraRef.current?.stopRecording();
+  const stopRecording = () => {
+    cameraRef.current?.stopRecording();
   };
 
   const flipHandler = () => {
@@ -54,6 +61,39 @@ const Camera = (): JSX.Element => {
     cameraType === RNCamera.Constants.Type.front
       ? setCameraType(RNCamera.Constants.Type.back)
       : setCameraType(RNCamera.Constants.Type.front);
+  };
+
+  const loadVideosHandler = async () => {
+    if (recording) return;
+
+    handleButtonPress();
+    // const albumsList = await CameraRoll.getAlbums({ assetType: 'Videos' });
+    // console.log(albumsList);
+  };
+
+  const handleButtonPress = () => {
+    CameraRoll.getPhotos({
+      first: 20,
+      assetType: 'Videos',
+    })
+      .then(r => {
+        setVideos(r.edges);
+        setShowGallery(true);
+      })
+      .catch(err => {
+        //Error Loading Images
+        console.log(err);
+      });
+  };
+
+  const selectVideoHandler = () => {
+    const uri = videos[currentIndex].node.image.uri;
+    uri && setSelectedVideoUri(uri);
+    setShowGallery(false);
+  };
+
+  const pageSelectedHandler = (e: PagerViewOnPageSelectedEvent) => {
+    currentIndex = e.nativeEvent.position;
   };
 
   const getButton = (onPress: () => void, text: string) => {
@@ -95,29 +135,55 @@ const Camera = (): JSX.Element => {
       return;
     }
 
-    return await CameraRoll.save(videoUri, { type: 'video' });
+    return await CameraRoll.save(videoUri, { type: 'video', album: 'DCIM' });
   };
+
+  console.log(selectedVideoUri);
 
   return (
     <View style={[styles.container]}>
-      <RNCamera
-        style={{ flex: 1 }}
-        ref={cameraRef}
-        type={cameraType}
-        onCameraReady={() => {
-          setIsCameraReady(true);
-        }}
-        androidCameraPermissionOptions={{
-          title: 'Permission to use camera',
-          message: 'We need permission to use your camera',
-          buttonPositive: 'Ok',
-          buttonNegative: 'Cancel',
-        }}
-      />
-      <View style={[styles.bottomRow]}>
-        {button}
-        {getButton(flipHandler, 'FLIP')}
-      </View>
+      {!showGallery ? (
+        <>
+          <RNCamera
+            style={{ flex: 1 }}
+            ref={cameraRef}
+            type={cameraType}
+            onCameraReady={() => {
+              setIsCameraReady(true);
+            }}
+            androidCameraPermissionOptions={{
+              title: 'Permission to use camera',
+              message: 'We need permission to use your camera',
+              buttonPositive: 'Ok',
+              buttonNegative: 'Cancel',
+            }}
+          />
+          <View style={[styles.bottomRow]}>
+            {button}
+            {getButton(flipHandler, 'FLIP')}
+            {getButton(loadVideosHandler, 'VIEW')}
+          </View>
+        </>
+      ) : (
+        <>
+          <PagerView onPageSelected={pageSelectedHandler} style={styles.pagerView} initialPage={0}>
+            {videos.map((p, i) => {
+              return (
+                <View key={i}>
+                  <Video
+                    controls={true}
+                    style={styles.video}
+                    fullscreen={true}
+                    paused={true}
+                    source={{ uri: p.node.image.uri }}
+                  />
+                </View>
+              );
+            })}
+          </PagerView>
+          <View style={[styles.bottomRow]}>{getButton(selectVideoHandler, 'SELECT')}</View>
+        </>
+      )}
     </View>
   );
 };
@@ -125,7 +191,6 @@ const Camera = (): JSX.Element => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
   },
   bottomRow: {
     width: '100%',
@@ -144,6 +209,14 @@ const styles = StyleSheet.create({
   textColor: {
     color: '#ff0000',
     fontSize: 14,
+  },
+  video: {
+    width: 300,
+    height: 300,
+    margin: 20,
+  },
+  pagerView: {
+    flex: 1,
   },
 });
 
