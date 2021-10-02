@@ -12,6 +12,7 @@ import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import Video from 'react-native-video';
 import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
+import { ProcessingManager } from 'react-native-video-processing';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -44,8 +45,14 @@ const Camera = (): JSX.Element => {
       setProcessing(true);
 
       if (video?.uri) {
-        const response = await saveRecording(video.uri);
-        response && setSelectedVideoUri(response);
+        const compressedUri = await compressVideo(video.uri);
+        console.log('path: ' + compressedUri.path);
+        console.log('thumb: ' + compressedUri.thumbnail);
+
+        if (compressedUri) {
+          const response = await saveRecording(compressedUri.path);
+          response && setSelectedVideoUri(response);
+        }
       }
 
       setProcessing(false);
@@ -68,6 +75,7 @@ const Camera = (): JSX.Element => {
 
   const loadVideosHandler = async () => {
     if (recording) return;
+    if (processing) return;
 
     handleButtonPress();
     // const albumsList = await CameraRoll.getAlbums({ assetType: 'Videos' });
@@ -139,6 +147,23 @@ const Camera = (): JSX.Element => {
     }
 
     return await CameraRoll.save(videoUri, { type: 'video', album: 'DCIM' });
+  };
+
+  async function compressVideo(path: string) {
+    console.log(`begin compressing ${path}`);
+    const origin = await ProcessingManager.getVideoInfo(path);
+    const result = await ProcessingManager.compress(path, {
+      width: origin.size && origin.size.width / 1,
+      height: origin.size && origin.size.height / 1,
+      bitrateMultiplier: 7,
+      minimumBitrate: 300000,
+    });
+    const thumbnail = getThumbnail(result.source);
+    return { path: result.source, thumbnail };
+  }
+
+  const getThumbnail = async (path: string) => {
+    return await ProcessingManager.getPreviewForSecond(path);
   };
 
   console.log(selectedVideoUri);
