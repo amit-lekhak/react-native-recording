@@ -13,7 +13,6 @@ import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import { ProcessingManager, VideoPlayer } from 'react-native-video-processing';
-import Video from 'react-native-video';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -24,7 +23,9 @@ const Camera = (): JSX.Element => {
   const [showGallery, setShowGallery] = useState(false);
   const [videos, setVideos] = useState<PhotoIdentifier[]>([]);
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
-  const [thumbnails, setThumbnails] = useState<string[]>([]);
+  // const [thumbnails, setThumbnails] = useState<string[]>([]]);
+  const thumbnail =
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
 
   const [playVideo, setPlayVideo] = useState(false);
   const [enableScroll, setEnableScroll] = useState(true);
@@ -85,6 +86,8 @@ const Camera = (): JSX.Element => {
   };
 
   const getVideosLocally = () => {
+    setVideos([]);
+    // setThumbnails([]);
     CameraRoll.getPhotos({
       first: 20,
       assetType: 'Videos',
@@ -92,19 +95,17 @@ const Camera = (): JSX.Element => {
       .then(r => {
         setVideos(r.edges);
 
-        r.edges.map(async vid => {
-          const thumbnail =
-            'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
+        // r.edges.map(async vid => {
+        //   const thumbnail =
+        //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
 
-          // console.log('here');
-
-          // thumbnail = await getThumbnail(vid.node.image.uri);
-          // if (!thumbnail) {
-          //   thumbnail =
-          //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
-          // }
-          setThumbnails(arr => [...arr, thumbnail]);
-        });
+        //   // thumbnail = await getThumbnail(vid.node.image.uri);
+        //   // if (!thumbnail) {
+        //   //   thumbnail =
+        //   //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
+        //   // }
+        //   setThumbnails(arr => [...arr, thumbnail]);
+        // });
 
         setShowGallery(true);
       })
@@ -197,6 +198,8 @@ const Camera = (): JSX.Element => {
     setPlayVideo(prev => !prev);
   };
 
+  console.log(selectedVideoUri);
+
   return (
     <View style={[styles.container]}>
       {!showGallery ? (
@@ -246,7 +249,7 @@ const Camera = (): JSX.Element => {
                     <Image
                       style={styles.thumbnail}
                       source={{
-                        uri: thumbnails[i],
+                        uri: thumbnail,
                       }}
                     />
                   )}
