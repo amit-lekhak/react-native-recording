@@ -13,6 +13,7 @@ import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
 import { ProcessingManager, VideoPlayer } from 'react-native-video-processing';
+import Video from 'react-native-video';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -26,7 +27,7 @@ const Camera = (): JSX.Element => {
   const [thumbnails, setThumbnails] = useState<string[]>([]);
 
   const [playVideo, setPlayVideo] = useState(false);
-
+  const [enableScroll, setEnableScroll] = useState(true);
   const videoRef = useRef<VideoPlayer | null>(null);
 
   let currentIndex = 0;
@@ -117,6 +118,8 @@ const Camera = (): JSX.Element => {
     const uri = videos[currentIndex].node.image.uri;
     uri && setSelectedVideoUri(uri);
     setShowGallery(false);
+    setPlayVideo(false);
+    setEnableScroll(true);
   };
 
   const pageSelectedHandler = (e: PagerViewOnPageSelectedEvent) => {
@@ -190,6 +193,7 @@ const Camera = (): JSX.Element => {
   };
 
   const playVideoHandler = () => {
+    setEnableScroll(prev => !prev);
     setPlayVideo(prev => !prev);
   };
 
@@ -219,50 +223,39 @@ const Camera = (): JSX.Element => {
         </>
       ) : (
         <>
-          <PagerView onPageSelected={pageSelectedHandler} style={styles.pagerView} initialPage={0}>
-            {
-              // videos.map((p, i) => {
-              //   return (
-              //     <View key={i}>
-              //       {/* <Video
-              //         ref={videoRef}
-              //         poster='https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg'
-              //         controls={showControls}
-              //         onLoad={() => {
-              //           setShowControls(true);
-              //         }}
-              //         paused={true}
-              //         style={styles.video}
-              //         source={{ uri: p.node.image.uri }}
-              //       /> */}
-              //     </View>
-              //   );
-              // })
-            }
+          <PagerView
+            scrollEnabled={enableScroll}
+            onPageSelected={pageSelectedHandler}
+            style={styles.pagerView}
+            initialPage={0}
+          >
+            {videos.map((vid, i) => {
+              return (
+                <View key={i}>
+                  {playVideo && videos && (
+                    <VideoPlayer
+                      ref={videoRef}
+                      play={playVideo}
+                      style={styles.video}
+                      source={vid.node.image.uri}
+                      resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
+                    />
+                  )}
 
-            <View>
-              {playVideo && videos && (
-                <VideoPlayer
-                  ref={videoRef}
-                  play={playVideo}
-                  style={styles.video}
-                  source={videos[0].node.image.uri}
-                  resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
-                />
-              )}
-
-              {!playVideo && (
-                <Image
-                  style={styles.video}
-                  source={{
-                    uri: thumbnails[0],
-                  }}
-                />
-              )}
-            </View>
+                  {!playVideo && (
+                    <Image
+                      style={styles.thumbnail}
+                      source={{
+                        uri: thumbnails[i],
+                      }}
+                    />
+                  )}
+                </View>
+              );
+            })}
           </PagerView>
           <View style={[styles.bottomRow]}>
-            {getButton(playVideoHandler, 'START')}
+            {getButton(playVideoHandler, playVideo ? 'STOP' : 'PLAY')}
             {getButton(selectVideoHandler, 'SELECT')}
           </View>
         </>
@@ -299,6 +292,13 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     bottom: 0,
+    right: 0,
+  },
+  thumbnail: {
+    position: 'absolute',
+    top: 100,
+    left: 0,
+    bottom: 100,
     right: 0,
   },
   pagerView: {
