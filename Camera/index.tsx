@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   PermissionsAndroid,
   Platform,
   StyleSheet,
@@ -10,9 +11,8 @@ import {
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
-import Video from 'react-native-video';
 import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
-import { ProcessingManager } from 'react-native-video-processing';
+import { ProcessingManager, VideoPlayer } from 'react-native-video-processing';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -23,9 +23,11 @@ const Camera = (): JSX.Element => {
   const [showGallery, setShowGallery] = useState(false);
   const [videos, setVideos] = useState<PhotoIdentifier[]>([]);
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
-  const [showControls, setShowControls] = useState(false);
+  const [thumbnails, setThumbnails] = useState<string[]>([]);
 
-  const videoRef = useRef<Video | null>(null);
+  const [playVideo, setPlayVideo] = useState(false);
+
+  const videoRef = useRef<VideoPlayer | null>(null);
 
   let currentIndex = 0;
 
@@ -46,8 +48,6 @@ const Camera = (): JSX.Element => {
 
       if (video?.uri) {
         const compressedUri = await compressVideo(video.uri);
-        console.log('path: ' + compressedUri.path);
-        console.log('thumb: ' + compressedUri.thumbnail);
 
         if (compressedUri) {
           const response = await saveRecording(compressedUri.path);
@@ -73,22 +73,38 @@ const Camera = (): JSX.Element => {
       : setCameraType(RNCamera.Constants.Type.front);
   };
 
-  const loadVideosHandler = async () => {
+  const loadVideosHandler = () => {
     if (recording) return;
     if (processing) return;
 
-    handleButtonPress();
+    getVideosLocally();
+
     // const albumsList = await CameraRoll.getAlbums({ assetType: 'Videos' });
     // console.log(albumsList);
   };
 
-  const handleButtonPress = () => {
+  const getVideosLocally = () => {
     CameraRoll.getPhotos({
       first: 20,
       assetType: 'Videos',
     })
       .then(r => {
         setVideos(r.edges);
+
+        r.edges.map(async vid => {
+          const thumbnail =
+            'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
+
+          // console.log('here');
+
+          // thumbnail = await getThumbnail(vid.node.image.uri);
+          // if (!thumbnail) {
+          //   thumbnail =
+          //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
+          // }
+          setThumbnails(arr => [...arr, thumbnail]);
+        });
+
         setShowGallery(true);
       })
       .catch(err => {
@@ -158,15 +174,24 @@ const Camera = (): JSX.Element => {
       bitrateMultiplier: 7,
       minimumBitrate: 300000,
     });
-    const thumbnail = getThumbnail(result.source);
+    let thumbnail = '';
+    if (origin.duration > 1) {
+      thumbnail = await getThumbnail(result.source);
+    }
     return { path: result.source, thumbnail };
   }
 
   const getThumbnail = async (path: string) => {
-    return await ProcessingManager.getPreviewForSecond(path);
+    try {
+      return await ProcessingManager.getPreviewForSecond(path);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  console.log(selectedVideoUri);
+  const playVideoHandler = () => {
+    setPlayVideo(prev => !prev);
+  };
 
   return (
     <View style={[styles.container]}>
@@ -195,25 +220,51 @@ const Camera = (): JSX.Element => {
       ) : (
         <>
           <PagerView onPageSelected={pageSelectedHandler} style={styles.pagerView} initialPage={0}>
-            {videos.map((p, i) => {
-              return (
-                <View key={i}>
-                  <Video
-                    ref={videoRef}
-                    poster='https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg'
-                    controls={showControls}
-                    onLoad={() => {
-                      setShowControls(true);
-                    }}
-                    paused={true}
-                    style={styles.video}
-                    source={{ uri: p.node.image.uri }}
-                  />
-                </View>
-              );
-            })}
+            {
+              // videos.map((p, i) => {
+              //   return (
+              //     <View key={i}>
+              //       {/* <Video
+              //         ref={videoRef}
+              //         poster='https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg'
+              //         controls={showControls}
+              //         onLoad={() => {
+              //           setShowControls(true);
+              //         }}
+              //         paused={true}
+              //         style={styles.video}
+              //         source={{ uri: p.node.image.uri }}
+              //       /> */}
+              //     </View>
+              //   );
+              // })
+            }
+
+            <View>
+              {playVideo && videos && (
+                <VideoPlayer
+                  ref={videoRef}
+                  play={playVideo}
+                  style={styles.video}
+                  source={videos[0].node.image.uri}
+                  resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
+                />
+              )}
+
+              {!playVideo && (
+                <Image
+                  style={styles.video}
+                  source={{
+                    uri: thumbnails[0],
+                  }}
+                />
+              )}
+            </View>
           </PagerView>
-          <View style={[styles.bottomRow]}>{getButton(selectVideoHandler, 'SELECT')}</View>
+          <View style={[styles.bottomRow]}>
+            {getButton(playVideoHandler, 'START')}
+            {getButton(selectVideoHandler, 'SELECT')}
+          </View>
         </>
       )}
     </View>
@@ -223,6 +274,7 @@ const Camera = (): JSX.Element => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
   bottomRow: {
     width: '100%',
