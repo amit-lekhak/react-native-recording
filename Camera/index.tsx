@@ -11,9 +11,10 @@ import {
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
-import { ProcessingManager } from 'react-native-video-processing';
+// import { ProcessingManager } from 'react-native-video-processing';
 import Gallery from '../Gallery';
 import { createThumbnail } from 'react-native-create-thumbnail';
+import { RNFFmpeg } from 'react-native-ffmpeg';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -42,18 +43,24 @@ const Camera = (): JSX.Element => {
       setRecording(false);
       setProcessing(true);
 
-      if (video?.uri) {
-        const compressedUri = await compressVideo(video.uri);
+      let uri = video?.uri;
+
+      if (uri) {
+        const compressedUri = await compressVideo(uri);
 
         if (compressedUri) {
-          const response = await saveRecording(compressedUri.path);
-          response && setSelectedVideoUri(response);
+          uri = compressedUri.path;
         }
+
+        const response = await saveRecording(uri);
+        response && setSelectedVideoUri(response);
       }
 
-      setProcessing(false);
+      // setProcessing(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      setProcessing(false);
     }
   };
 
@@ -146,18 +153,26 @@ const Camera = (): JSX.Element => {
   };
 
   async function compressVideo(path: string) {
-    console.log(`begin compressing ${path}`);
-    const origin = await ProcessingManager.getVideoInfo(path);
-    const result = await ProcessingManager.compress(path, {
-      width: origin.size && origin.size.width / 1,
-      height: origin.size && origin.size.height / 1,
-      bitrateMultiplier: 7,
-      minimumBitrate: 300000,
-    });
+    // console.log(`begin compressing ${path}`);
+    // const origin = await ProcessingManager.getVideoInfo(path);
+    // const result = await ProcessingManager.compress(path, {
+    //   width: origin.size && origin.size.width / 1,
+    //   height: origin.size && origin.size.height / 1,
+    //   bitrateMultiplier: 7,
+    //   minimumBitrate: 300000,
+    // });
 
-    const thumbnail = await getThumbnail(result.source);
+    // RNFFmpeg.executeWithArguments([
+    //   '-i',
+    //   path,
+    //   '-c:v',
+    //   'mpeg4',
+    //   `file:///storage/emulated/0/DCIM/Camera/VID_${Date.now()}.mp4`,
+    // ]).then(result => console.log(`FFmpeg process exited with rc=${result}.`));
 
-    return { path: result.source, thumbnail };
+    // const thumbnail = await getThumbnail(result.source);
+
+    return { path: path, thumbnail: '' };
   }
 
   const getThumbnail = (path: string) => {
