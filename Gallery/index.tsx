@@ -24,14 +24,13 @@ const Gallery = ({ source, getThumbnail, getButton, handleScroll, selectVideoHan
       } catch (err) {
         console.log(err);
       }
-
-      await getPreview();
     };
+    //  getPreview();
   }, []);
 
   const playVideoHandler = () => {
-    handleScroll();
     setPlayVideo(prev => !prev);
+    handleScroll();
   };
 
   return (

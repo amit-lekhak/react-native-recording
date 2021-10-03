@@ -170,7 +170,6 @@ const Camera = (): JSX.Element => {
 
   const playVideoHandler = () => {
     setEnableScroll(prev => !prev);
-    // setPlayVideo(prev => !prev);
   };
 
   console.log(selectedVideoUri);
