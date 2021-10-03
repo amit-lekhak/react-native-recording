@@ -11,9 +11,9 @@ import {
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
-import { ProcessingManager } from 'react-native-video-processing';
 import Gallery from '../Gallery';
 import { createThumbnail } from 'react-native-create-thumbnail';
+import { Video } from 'react-native-compressor';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -42,13 +42,17 @@ const Camera = (): JSX.Element => {
       setRecording(false);
       setProcessing(true);
 
-      if (video?.uri) {
-        const compressedUri = await compressVideo(video.uri);
+      let uri = video?.uri;
+
+      if (uri) {
+        const compressedUri = await compressVideo(uri);
 
         if (compressedUri) {
-          const response = await saveRecording(compressedUri.path);
-          response && setSelectedVideoUri(response);
+          uri = compressedUri.path;
         }
+
+        const response = await saveRecording(uri);
+        response && setSelectedVideoUri(response);
       }
 
       setProcessing(false);
@@ -146,18 +150,34 @@ const Camera = (): JSX.Element => {
   };
 
   async function compressVideo(path: string) {
-    console.log(`begin compressing ${path}`);
-    const origin = await ProcessingManager.getVideoInfo(path);
-    const result = await ProcessingManager.compress(path, {
-      width: origin.size && origin.size.width / 1,
-      height: origin.size && origin.size.height / 1,
-      bitrateMultiplier: 7,
-      minimumBitrate: 300000,
-    });
+    // console.log(`begin compressing ${path}`);
+    // const origin = await ProcessingManager.getVideoInfo(path);
+    // const result = await ProcessingManager.compress(path, {
+    //   width: origin.size && origin.size.width / 1,
+    //   height: origin.size && origin.size.height / 1,
+    //   bitrateMultiplier: 7,
+    //   minimumBitrate: 300000,
+    // });
 
-    const thumbnail = await getThumbnail(result.source);
+    // const thumbnail = await getThumbnail(result.source);
 
-    return { path: result.source, thumbnail };
+    // return { path: result.source, thumbnail };
+
+    const result = await Video.compress(
+      path,
+      {
+        compressionMethod: 'auto',
+      },
+      progress => {
+        console.log(progress);
+      },
+    );
+
+    console.log(result);
+
+    const thumbnail = await getThumbnail(result);
+
+    return { path: result, thumbnail };
   }
 
   const getThumbnail = (path: string) => {
@@ -173,7 +193,7 @@ const Camera = (): JSX.Element => {
     setEnableScroll(prev => !prev);
   };
 
-  console.log(selectedVideoUri);
+  console.log('suri' + selectedVideoUri);
 
   return (
     <View style={[styles.container]}>
