@@ -13,6 +13,7 @@ import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll'
 import PagerView from 'react-native-pager-view';
 import { ProcessingManager } from 'react-native-video-processing';
 import Gallery from '../Gallery';
+import { createThumbnail } from 'react-native-create-thumbnail';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -153,19 +154,19 @@ const Camera = (): JSX.Element => {
       bitrateMultiplier: 7,
       minimumBitrate: 300000,
     });
-    let thumbnail = '';
-    if (origin.duration > 1) {
-      thumbnail = await getThumbnail(result.source);
-    }
+
+    const thumbnail = await getThumbnail(result.source);
+
     return { path: result.source, thumbnail };
   }
 
-  const getThumbnail = async (path: string) => {
-    try {
-      return await ProcessingManager.getPreviewForSecond(path);
-    } catch (error) {
-      console.log(error);
-    }
+  const getThumbnail = (path: string) => {
+    return createThumbnail({
+      url: path,
+      timeStamp: 3000,
+    })
+      .then(response => response.path)
+      .catch(err => console.log({ err }));
   };
 
   const playVideoHandler = () => {
@@ -208,7 +209,6 @@ const Camera = (): JSX.Element => {
                     handleScroll={playVideoHandler}
                     getButton={getButton}
                     source={vid.node.image.uri}
-                    getThumbnail={getThumbnail}
                     selectVideoHandler={selectVideoHandler}
                   />
                 </View>

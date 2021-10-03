@@ -1,32 +1,36 @@
-import React, { useEffect, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { createThumbnail } from 'react-native-create-thumbnail';
 import { VideoPlayer } from 'react-native-video-processing';
 
 type Props = {
   source: string;
-  getThumbnail: (path: string) => Promise<string>;
   getButton: (onPress: () => void, text: string) => JSX.Element;
   handleScroll: () => void;
   selectVideoHandler: (uri: string) => void;
 };
 
-const Gallery = ({ source, getThumbnail, getButton, handleScroll, selectVideoHandler }: Props): JSX.Element => {
+const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props): JSX.Element => {
   const [playVideo, setPlayVideo] = useState(false);
+  const [loadingThumbnail, setLoadingThumbnail] = useState(true);
   const [thumbnail, setThumbnail] = useState(
     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg',
   );
 
-  useEffect(() => {
-    const getPreview = async () => {
-      try {
-        const b64String = await getThumbnail(source);
-        setThumbnail(b64String);
-      } catch (err) {
-        console.log(err);
-      }
-    };
-    //  getPreview();
-  }, []);
+  const getThumbnails = () => {
+    createThumbnail({
+      url: source,
+      timeStamp: 3000,
+    })
+      .then(response => {
+        setThumbnail(response.path);
+        setLoadingThumbnail(false);
+      })
+      .catch(err => {
+        console.log({ err });
+        setLoadingThumbnail(false);
+      });
+  };
 
   const playVideoHandler = () => {
     setPlayVideo(prev => !prev);
@@ -48,12 +52,16 @@ const Gallery = ({ source, getThumbnail, getButton, handleScroll, selectVideoHan
           source={{
             uri: thumbnail,
           }}
+          onLoadStart={() => {
+            loadingThumbnail && getThumbnails();
+          }}
         />
       )}
 
       <View style={[styles.bottomRow]}>
         {getButton(playVideoHandler, playVideo ? 'STOP' : 'PLAY')}
         {getButton(() => selectVideoHandler(source), 'SELECT')}
+        <ActivityIndicator animating={loadingThumbnail} />
       </View>
     </>
   );
