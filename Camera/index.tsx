@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Image,
   PermissionsAndroid,
   Platform,
   StyleSheet,
@@ -11,8 +10,9 @@ import {
 } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
-import PagerView, { PagerViewOnPageSelectedEvent } from 'react-native-pager-view';
-import { ProcessingManager, VideoPlayer } from 'react-native-video-processing';
+import PagerView from 'react-native-pager-view';
+import { ProcessingManager } from 'react-native-video-processing';
+import Gallery from '../Gallery';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -23,15 +23,8 @@ const Camera = (): JSX.Element => {
   const [showGallery, setShowGallery] = useState(false);
   const [videos, setVideos] = useState<PhotoIdentifier[]>([]);
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
-  // const [thumbnails, setThumbnails] = useState<string[]>([]]);
-  const thumbnail =
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
 
-  const [playVideo, setPlayVideo] = useState(false);
   const [enableScroll, setEnableScroll] = useState(true);
-  const videoRef = useRef<VideoPlayer | null>(null);
-
-  let currentIndex = 0;
 
   const startRecording = async () => {
     if (!isCameraReady) return;
@@ -87,25 +80,13 @@ const Camera = (): JSX.Element => {
 
   const getVideosLocally = () => {
     setVideos([]);
-    // setThumbnails([]);
+
     CameraRoll.getPhotos({
       first: 20,
       assetType: 'Videos',
     })
       .then(r => {
         setVideos(r.edges);
-
-        // r.edges.map(async vid => {
-        //   const thumbnail =
-        //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
-
-        //   // thumbnail = await getThumbnail(vid.node.image.uri);
-        //   // if (!thumbnail) {
-        //   //   thumbnail =
-        //   //     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg';
-        //   // }
-        //   setThumbnails(arr => [...arr, thumbnail]);
-        // });
 
         setShowGallery(true);
       })
@@ -115,19 +96,13 @@ const Camera = (): JSX.Element => {
       });
   };
 
-  const selectVideoHandler = () => {
-    const uri = videos[currentIndex].node.image.uri;
+  const selectVideoHandler = (uri: string) => {
     uri && setSelectedVideoUri(uri);
     setShowGallery(false);
-    setPlayVideo(false);
     setEnableScroll(true);
   };
 
-  const pageSelectedHandler = (e: PagerViewOnPageSelectedEvent) => {
-    currentIndex = e.nativeEvent.position;
-  };
-
-  const getButton = (onPress: () => void, text: string) => {
+  const getButton = (onPress: () => void, text: string): JSX.Element => {
     return (
       <TouchableOpacity onPress={onPress} style={styles.capture}>
         <Text style={styles.textColor}> {text} </Text>
@@ -195,7 +170,6 @@ const Camera = (): JSX.Element => {
 
   const playVideoHandler = () => {
     setEnableScroll(prev => !prev);
-    setPlayVideo(prev => !prev);
   };
 
   console.log(selectedVideoUri);
@@ -226,41 +200,21 @@ const Camera = (): JSX.Element => {
         </>
       ) : (
         <>
-          <PagerView
-            scrollEnabled={enableScroll}
-            onPageSelected={pageSelectedHandler}
-            style={styles.pagerView}
-            initialPage={0}
-          >
+          <PagerView scrollEnabled={enableScroll} style={styles.pagerView} initialPage={0}>
             {videos.map((vid, i) => {
               return (
                 <View key={i}>
-                  {playVideo && videos && (
-                    <VideoPlayer
-                      ref={videoRef}
-                      play={playVideo}
-                      style={styles.video}
-                      source={vid.node.image.uri}
-                      resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
-                    />
-                  )}
-
-                  {!playVideo && (
-                    <Image
-                      style={styles.thumbnail}
-                      source={{
-                        uri: thumbnail,
-                      }}
-                    />
-                  )}
+                  <Gallery
+                    handleScroll={playVideoHandler}
+                    getButton={getButton}
+                    source={vid.node.image.uri}
+                    getThumbnail={getThumbnail}
+                    selectVideoHandler={selectVideoHandler}
+                  />
                 </View>
               );
             })}
           </PagerView>
-          <View style={[styles.bottomRow]}>
-            {getButton(playVideoHandler, playVideo ? 'STOP' : 'PLAY')}
-            {getButton(selectVideoHandler, 'SELECT')}
-          </View>
         </>
       )}
     </View>
@@ -290,20 +244,7 @@ const styles = StyleSheet.create({
     color: '#ff0000',
     fontSize: 14,
   },
-  video: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  },
-  thumbnail: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    bottom: 100,
-    right: 0,
-  },
+
   pagerView: {
     flex: 1,
   },
