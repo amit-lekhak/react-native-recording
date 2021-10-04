@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Button, View } from 'react-native';
 import Camera from './Camera';
-import Upload from './Upload';
 
 const App = (): JSX.Element => {
   const [showCamera, setShowCamera] = useState(false);
@@ -15,9 +14,7 @@ const App = (): JSX.Element => {
         <Camera />
       )}
 
-      {/* <Upload
-      uri={''}
-      /> */}
+      {/* <Upload uri={''} /> */}
     </>
   );
 };

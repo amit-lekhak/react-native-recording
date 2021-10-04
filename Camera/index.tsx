@@ -1,16 +1,15 @@
 import React, { useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  PermissionsAndroid,
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { ActivityIndicator, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
+
+// packages
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
+
+// styles
+import styles from './styles';
+
+// components
 import Gallery from '../Gallery';
 import Upload from '../Upload';
 
@@ -202,34 +201,5 @@ const Camera = (): JSX.Element => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#000',
-  },
-  bottomRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: 0,
-  },
-  capture: {
-    backgroundColor: 'transparent',
-    borderRadius: 5,
-    margin: 20,
-    borderWidth: 2,
-    padding: 15,
-  },
-  textColor: {
-    color: '#ff0000',
-    fontSize: 14,
-  },
-
-  pagerView: {
-    flex: 1,
-  },
-});
 
 export default Camera;

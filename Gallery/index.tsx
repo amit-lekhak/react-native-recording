@@ -1,7 +1,12 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, View } from 'react-native';
+
+// packages
 import { createThumbnail } from 'react-native-create-thumbnail';
 import Video from 'react-native-video';
+
+// styles
+import styles from './styles';
 
 type Props = {
   source: string;
@@ -50,7 +55,7 @@ const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props)
         />
       ) : (
         <Image
-          style={styles.thumbnail}
+          style={[styles.video, styles.thumbnail]}
           source={{
             uri: thumbnail,
           }}
@@ -70,27 +75,3 @@ const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props)
 };
 
 export default Gallery;
-
-const styles = StyleSheet.create({
-  video: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    bottom: 0,
-    right: 0,
-  },
-  thumbnail: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    bottom: 100,
-    right: 0,
-  },
-  bottomRow: {
-    width: '100%',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    position: 'absolute',
-    bottom: 0,
-  },
-});
