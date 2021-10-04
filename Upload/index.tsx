@@ -6,6 +6,66 @@ type Props = {
   uri: string;
 };
 
+const categories = [
+  {
+    icon: 'https://cdn-icons-png.flaticon.com/512/196/196067.png',
+    name: 'sports',
+  },
+  {
+    icon: 'https://previews.123rf.com/images/martialred/martialred1507/martialred150700644/42613209-music-note-flat-icon-for-apps-and-websites.jpg',
+    name: 'music',
+  },
+  {
+    icon: 'https://www.clipartmax.com/png/middle/8-88403_size-movie-icon.png',
+    name: 'movies',
+  },
+  {
+    icon: 'https://library.kissclipart.com/20180927/ose/kissclipart-news-icon-noun-project-clipart-computer-icons-news-a894a9621477b389.png',
+    name: 'current events',
+  },
+  {
+    icon: 'https://icon-library.com/images/relationships-icon/relationships-icon-16.jpg',
+    name: 'relationships',
+  },
+  {
+    icon: 'https://static.thenounproject.com/png/955295-200.png',
+    name: 'politics',
+  },
+];
+
+const options = [
+  {
+    icon: 'https://cdn3.iconfinder.com/data/icons/network-server-and-hosting-set-1/100/a-13-512.png',
+    text: 'Add kolyders',
+    button: true,
+  },
+  {
+    icon: 'https://cdn3.iconfinder.com/data/icons/network-server-and-hosting-set-1/100/a-13-512.png',
+    text: 'Add to group',
+    button: true,
+  },
+  {
+    icon: 'https://png.pngtree.com/png-vector/20191024/ourlarge/pngtree-lock-line-icon-vector-png-image_1859174.jpg',
+    text: 'Who can respond',
+    button: true,
+  },
+  {
+    icon: 'https://e7.pngegg.com/pngimages/830/47/png-clipart-font-awesome-computer-icons-user-interface-font-comment-computer-program-data-thumbnail.png',
+    text: 'Allow comments',
+    button: false,
+  },
+  {
+    icon: 'https://thumbs.dreamstime.com/b/location-icon-thin-line-pin-point-isolated-white-background-140380332.jpg',
+    text: 'Add location',
+    button: true,
+  },
+  {
+    icon: '',
+    text: 'Feature my post',
+    button: true,
+  },
+];
+
 const Upload: React.FC<Props> = ({ uri }) => {
   const [thumbnail, setThumbnail] = useState(
     'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg',
@@ -29,10 +89,10 @@ const Upload: React.FC<Props> = ({ uri }) => {
 
   const getOptionsRow = (icon: string, text: string, button: boolean) => {
     return (
-      <View style={styles.optionsRow}>
+      <View key={text} style={styles.optionsRow}>
         <View style={{ flexDirection: 'row' }}>
           {icon !== '' ? <Image source={{ uri: icon }} style={styles.icon} /> : null}
-          <Text>{text}</Text>
+          <Text style={styles.text}>{text}</Text>
         </View>
         {button ? (
           <TouchableOpacity>
@@ -48,6 +108,22 @@ const Upload: React.FC<Props> = ({ uri }) => {
             <Text>Switch</Text>
           </TouchableOpacity>
         )}
+      </View>
+    );
+  };
+
+  const getCategory = (icon: string, name: string) => {
+    return (
+      <View key={name} style={styles.categoryCell}>
+        <TouchableOpacity>
+          <Image
+            source={{
+              uri: icon,
+            }}
+            style={styles.categoryIcon}
+          />
+        </TouchableOpacity>
+        <Text>{name}</Text>
       </View>
     );
   };
@@ -78,35 +154,13 @@ const Upload: React.FC<Props> = ({ uri }) => {
 
           <View style={styles.horizontalLine} />
 
-          <>
-            {getOptionsRow(
-              'https://cdn3.iconfinder.com/data/icons/network-server-and-hosting-set-1/100/a-13-512.png',
-              'Add kolyders',
-              true,
-            )}
-            {getOptionsRow(
-              'https://cdn3.iconfinder.com/data/icons/network-server-and-hosting-set-1/100/a-13-512.png',
-              'Add to group',
-              true,
-            )}
-            {getOptionsRow(
-              'https://png.pngtree.com/png-vector/20191024/ourlarge/pngtree-lock-line-icon-vector-png-image_1859174.jpg',
-              'Who can respond',
-              true,
-            )}
-            {getOptionsRow(
-              'https://e7.pngegg.com/pngimages/830/47/png-clipart-font-awesome-computer-icons-user-interface-font-comment-computer-program-data-thumbnail.png',
-              'Allow comments',
-              false,
-            )}
-            {getOptionsRow(
-              'https://thumbs.dreamstime.com/b/location-icon-thin-line-pin-point-isolated-white-background-140380332.jpg',
-              'Add location',
-              true,
-            )}
+          {options.map(option => getOptionsRow(option.icon, option.text, option.button))}
 
-            {getOptionsRow('', 'Feature my post', true)}
-          </>
+          <View style={styles.categoryContainer}>
+            <Text style={styles.text}>Pick a category</Text>
+
+            <View style={styles.categoryRow}>{categories.map(cat => getCategory(cat.icon, cat.name))}</View>
+          </View>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -155,5 +209,28 @@ const styles = StyleSheet.create({
     height: 24,
     width: 24,
     marginHorizontal: 4,
+  },
+  categoryContainer: {
+    justifyContent: 'center',
+    width: '85%',
+  },
+  categoryRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginVertical: 20,
+    justifyContent: 'space-between'
+  },
+  categoryCell: {
+    marginVertical: 10,
+    marginHorizontal: 10,
+    alignItems: 'center',
+  },
+  categoryIcon: {
+    height: 50,
+    width: 50,
+    marginBottom: 5,
+  },
+  text: {
+    color: '#AAAAAA',
   },
 });
