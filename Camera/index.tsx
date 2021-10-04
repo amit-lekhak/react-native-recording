@@ -12,6 +12,7 @@ import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
 import Gallery from '../Gallery';
+import Upload from '../Upload';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -156,7 +157,9 @@ const Camera = (): JSX.Element => {
 
   return (
     <View style={[styles.container]}>
-      {!showGallery ? (
+      {selectedVideoUri && selectedVideoUri?.length !== 0 ? (
+        <Upload uri={selectedVideoUri} />
+      ) : !showGallery ? (
         <>
           <RNCamera
             style={{ flex: 1 }}
