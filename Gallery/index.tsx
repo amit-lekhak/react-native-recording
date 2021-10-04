@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, View } from 'react-native';
 import { createThumbnail } from 'react-native-create-thumbnail';
-import { VideoPlayer } from 'react-native-video-processing';
+import Video from 'react-native-video';
 
 type Props = {
   source: string;
@@ -40,11 +40,13 @@ const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props)
   return (
     <>
       {playVideo ? (
-        <VideoPlayer
-          play={playVideo}
+        <Video
+          onEnd={playVideoHandler}
+          paused={false}
+          controls={false}
           style={styles.video}
-          source={source}
-          resizeMode={VideoPlayer.Constants.resizeMode.CONTAIN}
+          source={{ uri: source }}
+          resizeMode={'contain'}
         />
       ) : (
         <Image

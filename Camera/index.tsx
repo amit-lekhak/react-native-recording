@@ -11,9 +11,7 @@ import {
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
-import { ProcessingManager } from 'react-native-video-processing';
 import Gallery from '../Gallery';
-import { createThumbnail } from 'react-native-create-thumbnail';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -34,26 +32,21 @@ const Camera = (): JSX.Element => {
 
     try {
       const video = await cameraRef.current?.recordAsync({
-        maxDuration: 5,
+        maxDuration: 30,
         mute: false,
-        quality: '288p',
+        quality: '480p',
       });
 
       setRecording(false);
       setProcessing(true);
 
       if (video?.uri) {
-        const compressedUri = await compressVideo(video.uri);
-
-        if (compressedUri) {
-          const response = await saveRecording(compressedUri.path);
-          response && setSelectedVideoUri(response);
-        }
+        const response = await saveRecording(video.uri);
+        response && setSelectedVideoUri(response);
       }
-
-      // setProcessing(false);
     } catch (error) {
       console.log(error);
+      setRecording(false);
     } finally {
       setProcessing(false);
     }
@@ -71,10 +64,13 @@ const Camera = (): JSX.Element => {
       : setCameraType(RNCamera.Constants.Type.front);
   };
 
-  const loadVideosHandler = () => {
+  const loadVideosHandler = async () => {
     if (recording) return;
     if (processing) return;
 
+    if (Platform.OS === 'android' && !(await hasAndroidPermission('read'))) {
+      return;
+    }
     getVideosLocally();
 
     // const albumsList = await CameraRoll.getAlbums({ assetType: 'Videos' });
@@ -127,8 +123,13 @@ const Camera = (): JSX.Element => {
     );
   }
 
-  const hasAndroidPermission = async () => {
-    const permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+  const hasAndroidPermission = async (type: string) => {
+    let permission;
+    if (type === 'read') {
+      permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+    } else {
+      permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+    }
 
     const hasPermission = await PermissionsAndroid.check(permission);
     if (hasPermission) {
@@ -140,35 +141,11 @@ const Camera = (): JSX.Element => {
   };
 
   const saveRecording = async (videoUri: string) => {
-    if (Platform.OS === 'android' && !(await hasAndroidPermission())) {
+    if (Platform.OS === 'android' && !(await hasAndroidPermission('write'))) {
       return;
     }
 
-    return await CameraRoll.save(videoUri, { type: 'video', album: 'DCIM' });
-  };
-
-  async function compressVideo(path: string) {
-    console.log(`begin compressing ${path}`);
-    const origin = await ProcessingManager.getVideoInfo(path);
-    const result = await ProcessingManager.compress(path, {
-      width: origin.size && origin.size.width / 1,
-      height: origin.size && origin.size.height / 1,
-      bitrateMultiplier: 7,
-      minimumBitrate: 300000,
-    });
-
-    const thumbnail = await getThumbnail(result.source);
-
-    return { path: result.source, thumbnail };
-  }
-
-  const getThumbnail = (path: string) => {
-    return createThumbnail({
-      url: path,
-      timeStamp: 3000,
-    })
-      .then(response => response.path)
-      .catch(err => console.log({ err }));
+    return await CameraRoll.save(videoUri, { type: 'video' });
   };
 
   const playVideoHandler = () => {
