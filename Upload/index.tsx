@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Image, SafeAreaView, ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Button, Image, SafeAreaView, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // packages
 import { createThumbnail } from 'react-native-create-thumbnail';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 
 // styles
 import styles from './styles';
@@ -20,6 +22,12 @@ const Upload: React.FC<Props> = ({ uri }) => {
   );
   const [loadingThumbnail, setLoadingThumbnail] = useState(true);
 
+  const [isSwitchEnabled, setIsSwitchEnabled] = useState(true);
+
+  const toggleSwitch = () => {
+    setIsSwitchEnabled(prev => !prev);
+  };
+
   const getThumbnail = () => {
     createThumbnail({
       url: uri,
@@ -35,41 +43,35 @@ const Upload: React.FC<Props> = ({ uri }) => {
       });
   };
 
-  const getOptionsRow = (icon: string, text: string, button: boolean) => {
+  const getOptionsRow = (iconName: string, text: string, button: boolean) => {
     return (
       <View key={text} style={styles.optionsRow}>
         <View style={styles.optionGroup}>
-          {icon !== '' ? <Image source={{ uri: icon }} style={styles.icon} /> : null}
+          {iconName !== '' ? <Icon name={iconName} style={styles.icon} /> : null}
           <Text style={styles.text}>{text}</Text>
         </View>
         {button ? (
           <TouchableOpacity>
-            <Image
-              source={{
-                uri: 'https://w7.pngwing.com/pngs/66/875/png-transparent-arrow-computer-icons-right-arrow-angle-text-rectangle.png',
-              }}
-              style={styles.icon}
-            />
+            <Icon name={'angle-right'} style={styles.icon} onPress={() => console.log('pressed')} />
           </TouchableOpacity>
         ) : (
-          <TouchableOpacity>
-            <Text>Switch</Text>
-          </TouchableOpacity>
+          <Switch
+            trackColor={{ false: '#767577', true: '#81bbff' }}
+            thumbColor={isSwitchEnabled ? '#81b0ff' : '#f4f3f4'}
+            ios_backgroundColor='#3e3e3e'
+            onValueChange={toggleSwitch}
+            value={isSwitchEnabled}
+          />
         )}
       </View>
     );
   };
 
-  const getCategory = (icon: string, name: string) => {
+  const getCategory = (iconName: string, name: string) => {
     return (
       <View key={name} style={styles.categoryCell}>
         <TouchableOpacity>
-          <Image
-            source={{
-              uri: icon,
-            }}
-            style={styles.categoryIcon}
-          />
+          <MaterialIcon name={iconName} style={styles.categoryIcon} />
         </TouchableOpacity>
         <Text>{name}</Text>
       </View>
@@ -115,7 +117,7 @@ const Upload: React.FC<Props> = ({ uri }) => {
               <Text>Cancel</Text>
             </TouchableOpacity>
 
-            <Button onPress={() => console.log('Post')} title={'Post'} />
+            <Button disabled={true} onPress={() => console.log('Post')} title={'Post'} />
           </View>
         </View>
       </ScrollView>

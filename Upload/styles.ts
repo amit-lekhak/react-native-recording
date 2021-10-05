@@ -42,9 +42,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   icon: {
+    fontSize: 20,
     height: 24,
     width: 24,
     marginHorizontal: 4,
+    color: '#AAAAAA',
   },
   categoryContainer: {
     justifyContent: 'center',
@@ -54,16 +56,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     marginVertical: 20,
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
   },
   categoryCell: {
     marginVertical: 10,
     marginHorizontal: 10,
-    alignItems: 'flex-start',
+    alignItems: 'center',
   },
   categoryIcon: {
-    height: 50,
-    width: 50,
+    fontSize: 30,
+    height: 30,
+    width: 30,
     marginBottom: 5,
   },
   text: {
