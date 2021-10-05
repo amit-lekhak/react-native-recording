@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 // packages
@@ -125,10 +125,31 @@ const Camera = (): JSX.Element => {
 
   const hasAndroidPermission = async (type: string) => {
     let permission;
-    if (type === 'read') {
-      permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-    } else {
-      permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+    // if (type === 'read') {
+    //   permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+    // } else {
+    //   permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+    // }
+
+    switch (type) {
+      case 'read':
+        permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+        break;
+
+      case 'write':
+        permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
+        break;
+
+      case 'camera':
+        permission = PermissionsAndroid.PERMISSIONS.CAMERA;
+        break;
+
+      case 'audio':
+        permission = PermissionsAndroid.PERMISSIONS.RECORD_AUDIO;
+        break;
+
+      default:
+        return false;
     }
 
     const hasPermission = await PermissionsAndroid.check(permission);
@@ -154,6 +175,11 @@ const Camera = (): JSX.Element => {
 
   console.log(selectedVideoUri);
 
+  useEffect(() => {
+    hasAndroidPermission('camera');
+    hasAndroidPermission('audio');
+  }, []);
+
   return (
     <View style={[styles.container]}>
       {selectedVideoUri && selectedVideoUri?.length !== 0 ? (
@@ -166,12 +192,6 @@ const Camera = (): JSX.Element => {
             type={cameraType}
             onCameraReady={() => {
               setIsCameraReady(true);
-            }}
-            androidCameraPermissionOptions={{
-              title: 'Permission to use camera',
-              message: 'We need permission to use your camera',
-              buttonPositive: 'Ok',
-              buttonNegative: 'Cancel',
             }}
           />
           <View style={[styles.bottomRow]}>
