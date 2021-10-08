@@ -21,10 +21,10 @@ const styles = StyleSheet.create({
   playRecordOptions: {
     position: 'absolute',
     right: 0,
-    left: '40%',
-    bottom: 100,
+    left: 0,
+    bottom: 80,
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 20,
   },
@@ -43,6 +43,10 @@ const styles = StyleSheet.create({
   },
   galleryIcon: {
     fontSize: 30,
+  },
+  galleryView: {
+    position: 'absolute',
+    right: 30,
   },
   recordButton: {
     height: 76,

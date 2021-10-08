@@ -207,7 +207,7 @@ const Camera = (): JSX.Element => {
   }
 
   const galleryButton = (
-    <TouchableOpacity onPress={loadVideosHandler} style={styles.button}>
+    <TouchableOpacity onPress={loadVideosHandler} style={[styles.button, styles.galleryView]}>
       <Icon name={'images'} style={[styles.optionIcon, styles.galleryIcon]} />
     </TouchableOpacity>
   );
