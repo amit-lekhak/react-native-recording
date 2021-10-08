@@ -26,6 +26,7 @@ const Camera = (): JSX.Element => {
 
   const [enableScroll, setEnableScroll] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [flashMode, setFlashMode] = useState(RNCamera.Constants.FlashMode.off);
 
   useEffect(() => {
     hasAndroidPermission('camera');
@@ -71,8 +72,10 @@ const Camera = (): JSX.Element => {
       : setCameraType(RNCamera.Constants.Type.front);
   };
 
-  const flashHandler = () => {
-    console.log('Flash');
+  const toggleFlashHandler = () => {
+    flashMode === RNCamera.Constants.FlashMode.off
+      ? setFlashMode(RNCamera.Constants.FlashMode.torch)
+      : setFlashMode(RNCamera.Constants.FlashMode.off);
   };
 
   const loadVideosHandler = async () => {
@@ -219,6 +222,7 @@ const Camera = (): JSX.Element => {
             style={{ flex: 1 }}
             ref={cameraRef}
             type={cameraType}
+            flashMode={flashMode}
             onCameraReady={() => {
               setIsCameraReady(true);
             }}
@@ -231,7 +235,7 @@ const Camera = (): JSX.Element => {
 
           <View style={[styles.cameraOptions]}>
             {getCameraOptionButton(flipHandler, 'Flip', 'camera-reverse-outline')}
-            {getCameraOptionButton(flashHandler, 'Flash', 'flash-outline')}
+            {getCameraOptionButton(toggleFlashHandler, 'Flash', 'flash-outline')}
           </View>
 
           <View style={styles.playRecordOptions}>
