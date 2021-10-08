@@ -25,6 +25,7 @@ const Camera = (): JSX.Element => {
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
 
   const [enableScroll, setEnableScroll] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
     hasAndroidPermission('camera');
@@ -122,10 +123,11 @@ const Camera = (): JSX.Element => {
     );
   };
 
-  const getRecordingTypeButton = (onpress: () => void, text: string) => {
+  const getRecordingTypeButton = (onpress: () => void, text: string, isActive: boolean) => {
     return (
       <TouchableOpacity onPress={onpress} style={styles.button}>
-        <Text style={styles.textColor}>{text}</Text>
+        <Text style={isActive ? styles.textColor : styles.textInactive}>{text}</Text>
+        {isActive && <View style={styles.dot} />}
       </TouchableOpacity>
     );
   };
@@ -222,9 +224,9 @@ const Camera = (): JSX.Element => {
             }}
           />
           <View style={[styles.bottomRow]}>
-            {getRecordingTypeButton(() => console.log('clicked'), 'Video')}
-            {getRecordingTypeButton(() => console.log('clicked'), 'Audio only')}
-            {getRecordingTypeButton(() => console.log('clicked'), 'Text')}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Video', activeIndex === 0)}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Audio only', activeIndex === 1)}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Text', activeIndex === 2)}
           </View>
 
           <View style={[styles.cameraOptions]}>

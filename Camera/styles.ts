@@ -12,7 +12,8 @@ const styles = StyleSheet.create({
     position: 'relative',
     bottom: 0,
     height: 60,
-    alignItems: 'center',
+    alignItems: 'flex-start',
+    marginTop: 10,
   },
   button: {
     margin: 10,
@@ -69,6 +70,17 @@ const styles = StyleSheet.create({
   },
   pagerView: {
     flex: 1,
+  },
+  dot: {
+    height: 6,
+    width: 6,
+    borderRadius: 3,
+    backgroundColor: '#fff',
+    alignSelf: 'center',
+    margin: 2,
+  },
+  textInactive: {
+    color: '#9D9A9A',
   },
 });
 
