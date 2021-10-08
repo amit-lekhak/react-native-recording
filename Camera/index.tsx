@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Image, PermissionsAndroid, Platform, Text, TouchableOpacity, View } from 'react-native';
 
 // packages
 import { RNCamera } from 'react-native-camera';
@@ -13,6 +13,7 @@ import styles from './styles';
 // components
 import Gallery from '../Gallery';
 import Upload from '../Upload';
+import { createThumbnail } from 'react-native-create-thumbnail';
 
 const Camera = (): JSX.Element => {
   const cameraRef = useRef<null | RNCamera>(null);
@@ -27,10 +28,14 @@ const Camera = (): JSX.Element => {
   const [enableScroll, setEnableScroll] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
   const [flashMode, setFlashMode] = useState(RNCamera.Constants.FlashMode.off);
+  const [thumbnail, setThumbnail] = useState(
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/3/34/English_Cocker_Spaniel_4.jpg/800px-English_Cocker_Spaniel_4.jpg',
+  );
 
   useEffect(() => {
     hasAndroidPermission('camera');
     hasAndroidPermission('audio');
+    getLastVideoThumbnail();
   }, []);
 
   const startRecording = async () => {
@@ -107,6 +112,23 @@ const Camera = (): JSX.Element => {
         //Error Loading Images
         console.log(err);
       });
+  };
+
+  const getLastVideoThumbnail = async () => {
+    try {
+      const videos = await CameraRoll.getPhotos({
+        first: 1,
+        assetType: 'Videos',
+      });
+      const thumbnail = await createThumbnail({
+        url: videos.edges[0].node.image.uri,
+        timeStamp: 3000,
+      });
+
+      setThumbnail(thumbnail.path);
+    } catch (error) {
+      console.log('Error');
+    }
   };
 
   const selectVideoHandler = (uri: string) => {
@@ -208,7 +230,9 @@ const Camera = (): JSX.Element => {
 
   const galleryButton = (
     <TouchableOpacity onPress={loadVideosHandler} style={[styles.button, styles.galleryView]}>
-      <Icon name={'images'} style={[styles.optionIcon, styles.galleryIcon]} />
+      <View>
+        <Image style={styles.thumbnail} resizeMode={'cover'} source={{ uri: thumbnail }} />
+      </View>
     </TouchableOpacity>
   );
 

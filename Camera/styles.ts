@@ -41,12 +41,9 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: '#fff',
   },
-  galleryIcon: {
-    fontSize: 30,
-  },
   galleryView: {
     position: 'absolute',
-    right: 30,
+    right: 20,
   },
   recordButton: {
     height: 76,
@@ -85,6 +82,13 @@ const styles = StyleSheet.create({
   },
   textInactive: {
     color: '#9D9A9A',
+  },
+  thumbnail: {
+    height: 50,
+    width: 50,
+    borderWidth: 1,
+    borderColor: '#fff',
+    borderRadius: 8,
   },
 });
 
