@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, View } from 'react-native';
+import { ActivityIndicator, Image, Text, TouchableOpacity, View } from 'react-native';
 
 // packages
 import { createThumbnail } from 'react-native-create-thumbnail';
@@ -7,15 +7,15 @@ import Video from 'react-native-video';
 
 // styles
 import styles from './styles';
+import cStyles from '../Camera/styles';
 
 type Props = {
   source: string;
-  getButton: (onPress: () => void, text: string) => JSX.Element;
   handleScroll: () => void;
   selectVideoHandler: (uri: string) => void;
 };
 
-const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props): JSX.Element => {
+const Gallery = ({ source, handleScroll, selectVideoHandler }: Props): JSX.Element => {
   const [playVideo, setPlayVideo] = useState(false);
   const [loadingThumbnail, setLoadingThumbnail] = useState(true);
   const [thumbnail, setThumbnail] = useState(
@@ -40,6 +40,14 @@ const Gallery = ({ source, getButton, handleScroll, selectVideoHandler }: Props)
   const playVideoHandler = () => {
     setPlayVideo(prev => !prev);
     handleScroll();
+  };
+
+  const getButton = (onPress: () => void, text: string): JSX.Element => {
+    return (
+      <TouchableOpacity onPress={onPress} style={cStyles.button}>
+        <Text style={cStyles.textColor}> {text} </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (

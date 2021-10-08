@@ -5,6 +5,7 @@ import { ActivityIndicator, PermissionsAndroid, Platform, Text, TouchableOpacity
 import { RNCamera } from 'react-native-camera';
 import CameraRoll, { PhotoIdentifier } from '@react-native-community/cameraroll';
 import PagerView from 'react-native-pager-view';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 // styles
 import styles from './styles';
@@ -24,6 +25,11 @@ const Camera = (): JSX.Element => {
   const [selectedVideoUri, setSelectedVideoUri] = useState<string | undefined>('');
 
   const [enableScroll, setEnableScroll] = useState(true);
+
+  useEffect(() => {
+    hasAndroidPermission('camera');
+    hasAndroidPermission('audio');
+  }, []);
 
   const startRecording = async () => {
     if (!isCameraReady) return;
@@ -64,6 +70,10 @@ const Camera = (): JSX.Element => {
       : setCameraType(RNCamera.Constants.Type.front);
   };
 
+  const flashHandler = () => {
+    console.log('Flash');
+  };
+
   const loadVideosHandler = async () => {
     if (recording) return;
     if (processing) return;
@@ -101,35 +111,27 @@ const Camera = (): JSX.Element => {
     setEnableScroll(true);
   };
 
-  const getButton = (onPress: () => void, text: string): JSX.Element => {
+  const getCameraOptionButton = (onpress: () => void, text: string, iconName: string): JSX.Element => {
     return (
-      <TouchableOpacity onPress={onPress} style={styles.capture}>
-        <Text style={styles.textColor}> {text} </Text>
+      <TouchableOpacity onPress={onpress} style={styles.button}>
+        <View style={{ alignItems: 'center' }}>
+          <Icon name={iconName} style={styles.optionIcon} />
+          <Text style={styles.textColor}>{text}</Text>
+        </View>
       </TouchableOpacity>
     );
   };
 
-  let button = getButton(startRecording, 'RECORD');
-
-  if (recording) {
-    button = getButton(stopRecording, 'STOP');
-  }
-
-  if (processing) {
-    button = (
-      <View style={styles.capture}>
-        <ActivityIndicator color={'#ff0000'} animating size={18} />
-      </View>
+  const getRecordingTypeButton = (onpress: () => void, text: string) => {
+    return (
+      <TouchableOpacity onPress={onpress} style={styles.button}>
+        <Text style={styles.textColor}>{text}</Text>
+      </TouchableOpacity>
     );
-  }
+  };
 
   const hasAndroidPermission = async (type: string) => {
     let permission;
-    // if (type === 'read') {
-    //   permission = PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
-    // } else {
-    //   permission = PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE;
-    // }
 
     switch (type) {
       case 'read':
@@ -175,10 +177,35 @@ const Camera = (): JSX.Element => {
 
   console.log(selectedVideoUri);
 
-  useEffect(() => {
-    hasAndroidPermission('camera');
-    hasAndroidPermission('audio');
-  }, []);
+  let recordButton = (
+    <TouchableOpacity onPress={startRecording}>
+      <View style={styles.recordButton} />
+    </TouchableOpacity>
+  );
+
+  if (recording) {
+    recordButton = (
+      <TouchableOpacity onPress={stopRecording}>
+        <View style={[styles.recordButton, styles.stopButton]}>
+          <View style={styles.stopIcon} />
+        </View>
+      </TouchableOpacity>
+    );
+  }
+
+  if (processing) {
+    recordButton = (
+      <View style={[styles.recordButton, styles.stopButton]}>
+        <ActivityIndicator color={'#F75555'} animating size={30} />
+      </View>
+    );
+  }
+
+  const galleryButton = (
+    <TouchableOpacity onPress={loadVideosHandler} style={styles.button}>
+      <Icon name={'images'} style={[styles.optionIcon, styles.galleryIcon]} />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={[styles.container]}>
@@ -195,9 +222,25 @@ const Camera = (): JSX.Element => {
             }}
           />
           <View style={[styles.bottomRow]}>
-            {button}
-            {getButton(flipHandler, 'FLIP')}
-            {getButton(loadVideosHandler, 'VIEW')}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Video')}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Audio only')}
+            {getRecordingTypeButton(() => console.log('clicked'), 'Text')}
+          </View>
+
+          <View style={[styles.cameraOptions]}>
+            {getCameraOptionButton(flipHandler, 'Flip', 'camera-reverse-outline')}
+            {getCameraOptionButton(flashHandler, 'Flash', 'flash-outline')}
+          </View>
+
+          <View style={styles.playRecordOptions}>
+            {recordButton}
+            {galleryButton}
+          </View>
+
+          <View style={styles.closeIcon}>
+            <TouchableOpacity onPress={() => console.log('close')}>
+              <Icon name={'close'} style={styles.optionIcon} />
+            </TouchableOpacity>
           </View>
         </>
       ) : (
@@ -208,7 +251,6 @@ const Camera = (): JSX.Element => {
                 <View key={i}>
                   <Gallery
                     handleScroll={playVideoHandler}
-                    getButton={getButton}
                     source={vid.node.image.uri}
                     selectVideoHandler={selectVideoHandler}
                   />
